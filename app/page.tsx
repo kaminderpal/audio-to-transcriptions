@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 type CreateIntentResponse = {
   uploadId?: string;
@@ -43,19 +43,51 @@ const statusLabelMap: Record<UploadIntent["status"], string> = {
 };
 
 const statusToneMap: Record<UploadIntent["status"], string> = {
-  intent_created: "bg-sky-100 text-sky-700 ring-sky-300/70",
-  uploaded: "bg-cyan-100 text-cyan-700 ring-cyan-300/70",
-  processing_queued: "bg-emerald-100 text-emerald-700 ring-emerald-300/70",
-  processing: "bg-amber-100 text-amber-700 ring-amber-300/70",
-  completed: "bg-teal-100 text-teal-700 ring-teal-300/70",
-  failed: "bg-rose-100 text-rose-700 ring-rose-300/70"
+  intent_created: "bg-cyan-200 text-slate-950",
+  uploaded: "bg-sky-200 text-slate-950",
+  processing_queued: "bg-lime-200 text-slate-950",
+  processing: "bg-amber-200 text-slate-950",
+  completed: "bg-emerald-200 text-slate-950",
+  failed: "bg-rose-300 text-slate-950"
 };
+
+const stages: Array<UploadIntent["status"]> = [
+  "intent_created",
+  "uploaded",
+  "processing_queued",
+  "processing",
+  "completed"
+];
+
+function formatBytes(size?: number) {
+  if (!size) {
+    return "Unknown";
+  }
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  const kb = size / 1024;
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB`;
+  }
+  return `${(kb / 1024).toFixed(2)} MB`;
+}
 
 export default function HomePage() {
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [upload, setUpload] = useState<UploadIntent | null>(null);
+
+  const activeStageIndex = useMemo(() => {
+    if (!upload) {
+      return isSubmitting ? 0 : -1;
+    }
+    if (upload.status === "failed") {
+      return -1;
+    }
+    return stages.indexOf(upload.status);
+  }, [upload, isSubmitting]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -169,90 +201,127 @@ export default function HomePage() {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-4 py-10 sm:px-6">
-      <div
-        className="pointer-events-none absolute -left-24 top-12 h-72 w-72 rounded-full bg-orange-300/25 blur-3xl animate-float"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -right-20 bottom-8 h-80 w-80 rounded-full bg-sky-300/30 blur-3xl animate-pulseSoft"
-        aria-hidden
-      />
-
-      <section className="glass-panel relative mx-auto w-full max-w-4xl overflow-hidden p-6 sm:p-10 animate-reveal">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-1.5 shimmer-line animate-shimmer" />
-
-        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="mb-2 inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
-              WaveScribe
+    <main className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6 sm:py-10">
+      <section className="arcade-shell rise">
+        <div className="grid-overlay" aria-hidden />
+        <div className="relative z-10">
+          <div className="mb-5">
+            <p className="mb-2 inline-flex rounded-full border border-white/25 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200">
+              WaveScribe Uplink
             </p>
-            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-              WaveScribe
+            <h1 className="text-4xl leading-[0.92] text-white sm:text-6xl">
+              AUDIO
+              <br />
+              TRANSFER
+              <br />
+              GRID
             </h1>
-            <p className="mt-3 max-w-2xl text-sm text-slate-600 sm:text-base">
-              Upload your audio file and continue in one smooth flow.
+            <p className="mt-3 max-w-2xl text-sm text-slate-300 sm:text-base">
+              Neon control surface for direct audio uploads, verification, and processing
+              handoff status.
             </p>
           </div>
 
-          {upload ? (
-            <span
-              className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusToneMap[upload.status]}`}
-            >
-              {statusLabelMap[upload.status]}
-            </span>
-          ) : null}
-        </header>
+          <div className="neon-line mb-5" />
 
-        <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-[1fr_auto]">
-          <label className="group block rounded-2xl border border-slate-200 bg-white/90 p-4 transition duration-300 hover:-translate-y-0.5 hover:shadow-lg">
-            <span className="mb-2 block text-sm font-medium text-slate-700">
-              Select audio file
-            </span>
-            <input
-              type="file"
-              accept="audio/*"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              disabled={isSubmitting}
-              className="block w-full cursor-pointer text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-sky-600 file:px-4 file:py-2 file:font-semibold file:text-white file:transition file:duration-200 hover:file:bg-sky-500"
-            />
-          </label>
+          <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+            <article className="arcade-panel rise-delay space-y-4">
+              <header className="flex items-center justify-between gap-3">
+                <h2 className="text-2xl text-white sm:text-3xl">Transfer Stages</h2>
+                {upload ? (
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${statusToneMap[upload.status]}`}
+                  >
+                    {statusLabelMap[upload.status]}
+                  </span>
+                ) : null}
+              </header>
 
-          <button
-            type="submit"
-            disabled={isSubmitting || !file}
-            className="h-fit rounded-2xl bg-gradient-to-r from-orange-500 to-sky-600 px-6 py-4 text-sm font-semibold text-white shadow-lg transition duration-300 hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isSubmitting ? "Uploading / Finalizing..." : "Start Upload"}
-          </button>
-        </form>
+              <div className="status-rail">
+                {stages.map((stage, index) => {
+                  const isActive = activeStageIndex === index;
+                  const isDone = activeStageIndex > index;
 
-        {error ? (
-          <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 animate-reveal">
-            {error}
-          </p>
-        ) : null}
+                  return (
+                    <div key={stage} className="status-node">
+                      <p className="text-sm font-medium uppercase tracking-[0.08em] text-slate-200">
+                        {String(index + 1).padStart(2, "0")} {statusLabelMap[stage]}
+                      </p>
+                      <span
+                        className={`rounded-md border px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] ${
+                          isActive
+                            ? "border-cyan-300 bg-cyan-300/20 text-cyan-200"
+                            : isDone
+                              ? "border-lime-300 bg-lime-300/20 text-lime-200"
+                              : "border-slate-600 bg-slate-800/50 text-slate-400"
+                        }`}
+                      >
+                        {isActive ? "Live" : isDone ? "Done" : "Standby"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
 
-        {upload ? (
-          <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-white/75 p-5 animate-reveal">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              File Details
-            </p>
-            <p className="text-sm text-slate-700">
-              <span className="font-semibold text-slate-900">Upload ID:</span> {upload.id}
-            </p>
-            <p className="text-sm text-slate-700">
-              <span className="font-semibold text-slate-900">Bucket:</span> {upload.bucket}
-            </p>
-            <p className="text-sm text-slate-700 break-all">
-              <span className="font-semibold text-slate-900">Object:</span> {upload.objectName}
-            </p>
-            <p className="text-sm text-slate-700 break-all">
-              <span className="font-semibold text-slate-900">Tracking ID:</span>{" "}
-              {upload.processingMessageId ?? "Preparing"}
-            </p>
+            <aside className="arcade-panel rise-delay space-y-4">
+              <h2 className="text-2xl text-white sm:text-3xl">Upload Console</h2>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <label className="block rounded-xl border border-white/20 bg-white/5 p-4">
+                  <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.16em] text-slate-300">
+                    Select Audio
+                  </span>
+                  <input
+                    type="file"
+                    accept="audio/*"
+                    onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                    disabled={isSubmitting}
+                    className="block w-full cursor-pointer text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-cyan-300 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-slate-950 hover:file:bg-cyan-200"
+                  />
+                </label>
+
+                {file ? (
+                  <p className="rounded-xl border border-white/20 bg-black/20 px-3 py-2 text-xs text-slate-300">
+                    {file.name} ({formatBytes(file.size)})
+                  </p>
+                ) : null}
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !file}
+                  className="w-full rounded-xl bg-lime-300 px-4 py-3 text-sm font-semibold uppercase tracking-[0.1em] text-slate-950 transition hover:-translate-y-0.5 hover:bg-lime-200 disabled:cursor-not-allowed disabled:bg-slate-400"
+                >
+                  {isSubmitting ? "Uploading / Finalizing..." : "Start Upload"}
+                </button>
+              </form>
+
+              {error ? (
+                <p className="rounded-xl border border-rose-300/50 bg-rose-300/20 px-3 py-2 text-sm text-rose-200">
+                  {error}
+                </p>
+              ) : null}
+
+              {upload ? (
+                <div className="space-y-2 rounded-xl border border-white/20 bg-black/20 p-4 text-sm text-slate-300">
+                  <p>
+                    <span className="font-semibold text-white">Upload ID:</span> {upload.id}
+                  </p>
+                  <p>
+                    <span className="font-semibold text-white">Bucket:</span> {upload.bucket}
+                  </p>
+                  <p className="break-all">
+                    <span className="font-semibold text-white">Object:</span> {upload.objectName}
+                  </p>
+                  <p className="break-all">
+                    <span className="font-semibold text-white">Tracking ID:</span>{" "}
+                    {upload.processingMessageId ?? "Preparing"}
+                  </p>
+                </div>
+              ) : null}
+            </aside>
           </div>
-        ) : null}
+        </div>
       </section>
     </main>
   );
