@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUploadIntent } from "@/lib/upload-intents";
-
-type RouteContext = {
-  params: Promise<{
-    uploadId: string;
-  }>;
-};
+import type { RouteContext } from "./route.types";
 
 export async function GET(_request: Request, context: RouteContext) {
   try {

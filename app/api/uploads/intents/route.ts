@@ -7,11 +7,7 @@ import {
 } from "@/lib/gcp";
 import { createUploadIntent } from "@/lib/upload-intents";
 import { UploadIntentRecord } from "@/lib/types";
-
-type CreateIntentRequest = {
-  fileName?: string;
-  contentType?: string;
-};
+import type { CreateIntentRequest } from "./route.types";
 
 const ALLOWED_CONTENT_TYPES = new Set([
   "audio/mpeg",

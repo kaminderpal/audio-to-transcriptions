@@ -9,16 +9,10 @@ import {
   markUploadFailed,
   updateUploadIntent
 } from "@/lib/upload-intents";
-
-type RouteContext = {
-  params: Promise<{
-    uploadId: string;
-  }>;
-};
-
-type CompleteUploadRequest = {
-  fileSizeBytes?: number;
-};
+import type {
+  CompleteUploadRequest,
+  RouteContext
+} from "./route.types";
 
 export async function POST(request: Request, context: RouteContext) {
   try {
