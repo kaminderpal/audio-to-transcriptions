@@ -1,12 +1,14 @@
-# Production Audio Upload (Next.js + GCS + Firestore + Pub/Sub)
+# WaveScribe
 
-Production-style direct browser upload architecture:
+WaveScribe is a production-ready audio upload app built with Next.js.
+
+System flow:
 - Browser requests an upload intent from API
 - API creates signed URL + durable record in Firestore
 - Browser uploads directly to GCS using signed URL
 - Browser calls complete endpoint
-- API verifies object in GCS and publishes async event to Pub/Sub
-- Worker service consumes Pub/Sub for downstream processing
+- API verifies object in GCS and publishes an event to Pub/Sub
+- Worker service consumes Pub/Sub for downstream transcription workflow
 
 ## 1) Install
 
@@ -39,7 +41,7 @@ npm run dev
 
 Open `http://localhost:3000` and upload an audio file.
 
-## API (production flow)
+## API
 
 1) `POST /api/uploads/intents`
 
@@ -94,6 +96,6 @@ Response (`200`):
 ## Production notes
 
 - This code removes in-memory queue state and persists upload status in Firestore.
-- Async work should run in a separate worker service subscribed to `GCP_PUBSUB_TOPIC`.
+- Background work should run in a separate worker service subscribed to `GCP_PUBSUB_TOPIC`.
 - Make worker idempotent using `uploadId` as idempotency key.
 - Restrict CORS on bucket to your frontend origin only.

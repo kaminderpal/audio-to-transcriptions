@@ -105,7 +105,7 @@ export default function HomePage() {
       });
 
       if (!uploadResponse.ok) {
-        throw new Error("Direct upload to Google Cloud Storage failed.");
+        throw new Error("Direct upload failed.");
       }
 
       const completeResponse = await fetch(
@@ -159,13 +159,13 @@ export default function HomePage() {
       }
 
       if (data.status === "failed") {
-        throw new Error(data.error ?? "Upload processing failed.");
+        throw new Error(data.error ?? "Upload failed.");
       }
 
       await new Promise((resolve) => setTimeout(resolve, 1200));
     }
 
-    throw new Error("Upload is still processing. Please check again.");
+    throw new Error("Upload is still in progress. Please check again.");
   }
 
   return (
@@ -185,13 +185,13 @@ export default function HomePage() {
         <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mb-2 inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
-              Direct GCS Upload
+              WaveScribe
             </p>
             <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-              Upload Audio With Motion
+              WaveScribe
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-slate-600 sm:text-base">
-              Signed URL upload from browser to Google Cloud Storage, then async queue finalization.
+              Upload your audio file and continue in one smooth flow.
             </p>
           </div>
 
@@ -236,7 +236,7 @@ export default function HomePage() {
         {upload ? (
           <div className="mt-6 grid gap-3 rounded-2xl border border-slate-200 bg-white/75 p-5 animate-reveal">
             <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-              Upload Metadata
+              File Details
             </p>
             <p className="text-sm text-slate-700">
               <span className="font-semibold text-slate-900">Upload ID:</span> {upload.id}
@@ -248,8 +248,8 @@ export default function HomePage() {
               <span className="font-semibold text-slate-900">Object:</span> {upload.objectName}
             </p>
             <p className="text-sm text-slate-700 break-all">
-              <span className="font-semibold text-slate-900">Message ID:</span>{" "}
-              {upload.processingMessageId ?? "Not queued yet"}
+              <span className="font-semibold text-slate-900">Tracking ID:</span>{" "}
+              {upload.processingMessageId ?? "Preparing"}
             </p>
           </div>
         ) : null}

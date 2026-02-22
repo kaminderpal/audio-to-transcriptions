@@ -1,12 +1,15 @@
 {
-  "name": "audio-to-transcriptions",
+  "name": "audio-to-transcribe-prject",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "npx next typegen && tsc --noEmit",
+    "check:prepush": "npm run lint && npm run typecheck && npm run build",
+    "setup:hooks": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.11.2",
@@ -23,6 +26,8 @@
     "@types/node": "^20.14.10",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
     "eslint": "^10.0.1",
     "eslint-config-next": "^0.2.4",
     "typescript": "^5.5.3"
